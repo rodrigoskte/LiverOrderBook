@@ -1,0 +1,104 @@
+﻿@page "/"
+@inject ISnackbar Snackbar
+
+<PageTitle>📊 Estatísticas dos Ativos</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="pa-4">
+    <MudCard Class="pa-4 shadow-lg rounded">
+        <MudCardHeader>
+            <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">
+                📊 Estatísticas dos Ativos
+            </MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid Justify="Justify.SpaceBetween" Spacing="2">
+                @foreach (var stat in _statistics)
+                {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Class="pa-4 mb-3 shadow-md rounded hover-elevation">
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-2">
+                                🌟 @stat.Asset
+                            </MudText>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudGrid>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary">📈 Maior Preço: @string.Format("{0:C}", stat.HighestPrice)</MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary">📉 Menor Preço: @string.Format("{0:C}", stat.LowestPrice)</MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary">📊 Média de Preço: @string.Format("{0:C}", stat.AveragePrice)</MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary">📦 Média de Quantidade: @string.Format("{0:N4}", stat.AverageQuantity)</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                }
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    [Inject] private BaseUrlConfiguration BaseUrlConfig { get; set; } = default!;
+    private List<AssetStatisticsDto> _statistics = new();
+    private Timer? _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStatistics();
+        _timer = new Timer(async _ => await LoadStatistics(), null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+    }
+
+    private async Task LoadStatistics()
+    {
+        try
+        {
+            var client = new RestClient(BaseUrlConfig.ApiBase);
+            var request = new RestRequest("v1/Assets/all-statistics", Method.Get);
+            var response = await client.ExecuteAsync<ResultViewModel<IList<AssetStatisticsDto>>>(request);
+
+            if (response.IsSuccessful &&  response.Data.Data != null)
+            {
+                var newStatistics = response.Data;
+
+                // Atualiza ou mantém os valores existentes
+                foreach (var newStat in newStatistics.Data)
+                {
+                    var existingStat = _statistics.FirstOrDefault(s => s.Asset == newStat.Asset);
+                    if (existingStat != null)
+                    {
+                        existingStat.HighestPrice = newStat.HighestPrice;
+                        existingStat.LowestPrice = newStat.LowestPrice;
+                        existingStat.AveragePrice = newStat.AveragePrice;
+                        existingStat.AverageQuantity = newStat.AverageQuantity;
+                    }
+                    else
+                    {
+                        _statistics.Add(newStat);
+                    }
+                }
+            }
+            else
+            {
+                Snackbar.Add("Error loading statistics: " + response.ErrorMessage, Severity.Error);
+            }
+            InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Exception loading statistics: " + ex.Message, Severity.Error);
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

@@ -1,0 +1,26 @@
+﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+USER $APP_UID
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["LiveOrderBook.Presentation.API/LiveOrderBook.Presentation.API.csproj", "LiveOrderBook.Presentation.API/"]
+COPY ["../LiveOrderBook.Application/LiveOrderBook.Application.csproj", "LiveOrderBook.Application/"]
+COPY ["../LiveOrderBook.Domain/LiveOrderBook.Domain.csproj", "LiveOrderBook.Domain/"]
+COPY ["../LiveOrderBook.Infrastructure/LiveOrderBook.Infrastructure.csproj", "LiveOrderBook.Infrastructure/"]
+RUN dotnet restore "LiveOrderBook.Presentation.API/LiveOrderBook.Presentation.API.csproj"
+COPY . .
+WORKDIR "/src/LiveOrderBook.Presentation.API"
+RUN dotnet build "LiveOrderBook.Presentation.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "LiveOrderBook.Presentation.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "LiveOrderBook.Presentation.API.dll"]

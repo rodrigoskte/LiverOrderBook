@@ -1,0 +1,34 @@
+﻿services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserverdb
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "QBk88ka(6>"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - sqlserverdata:/var/opt/mssql
+  
+  api:
+    image: liveorderbookapiv1
+    ports:
+      - "5001:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultSqlConnection_dev=Server=sqlserver;Database=db-liveorderbook;User ID=sa;Password=QBk88ka(6>;Trusted_Connection=False;TrustServerCertificate=True;
+    depends_on:
+      - sqlserver
+
+  blazorwasm:
+    build:
+      context: .
+      dockerfile: DockerfileWASM
+    image: liveorderbookblazorv1
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+volumes:
+  sqlserverdata:
