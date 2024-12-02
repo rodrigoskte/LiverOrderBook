@@ -1,7 +1,7 @@
 # LiveOrderBook - Rodrigo Castagnaro
 
 <details>
- <summary>Documentação do projeto Live Order Book</summary>
+ <summary>Documentação do projeto LiveOrderBook</summary>
 
  #### Especialização em Arquitetura de Sistemas .NET com Azure: Live Order Book
 
