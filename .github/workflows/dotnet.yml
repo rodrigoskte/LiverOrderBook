@@ -1,0 +1,40 @@
+name: Build and Push Containers to ACR
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AZURE_CONTAINER_REGISTRY: acrliveorderbook.azurecr.io
+  API_IMAGE_NAME: liveorderbookapi
+  BLAZOR_IMAGE_NAME: liveorderbookblazor
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout do código-fonte
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Login no Azure Container Registry
+    - name: Login to Azure Container Registry
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
+        username: ${{ secrets.AZURE_ACR_USERNAME }}
+        password: ${{ secrets.AZURE_ACR_PASSWORD }}
+
+    # Construir e enviar a imagem da API
+    - name: Build and Push API Image
+      run: |
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }} -f src/Presentation/LiveOrderBook.Presentation.API/Dockerfile .
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }}
+
+    # Construir e enviar a imagem do Blazor
+    - name: Build and Push Blazor Image
+      run: |
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} -f src/Presentation/LiveOrderBook.Presentation.BlazorWebApp/Dockerfile .
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }}
