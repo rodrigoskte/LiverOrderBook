@@ -30,11 +30,11 @@ jobs:
     # Construir e enviar a imagem da API
     - name: Build and Push API Image
       run: |
-        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }} -f src/Presentation/LiveOrderBook.Presentation.API/Dockerfile .
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }} -f DockerfileApi .
         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }}
 
     # Construir e enviar a imagem do Blazor
     - name: Build and Push Blazor Image
       run: |
-        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} -f src/Presentation/LiveOrderBook.Presentation.BlazorWebApp/Dockerfile .
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} -f DockerfileWASM .
         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }}
