@@ -75,7 +75,8 @@ jobs:
           --os-type Linux \
           --cpu 1 \
           --memory 1 \
-          --ports 80
+          --ports 80 \
+          --ip-address Public
 
     # Deploy do Blazor no Azure Container Instances
     - name: Deploy Blazor to Azure Container Instances
@@ -90,4 +91,5 @@ jobs:
           --os-type Linux \
           --cpu 1 \
           --memory 1 \
-          --ports 80
+          --ports 8080 \
+          --ip-address Public
