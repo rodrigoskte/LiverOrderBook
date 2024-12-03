@@ -45,10 +45,14 @@ jobs:
         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }}
         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:latest
 
-    # Listar repositórios no ACR (opcional, para debug)
+    # Listar repositórios no ACR
     - name: List images in ACR
       run: |
-        az acr repository list --name aciliveorderbook --output table
+        az acr repository list \
+          --name aciliveorderbook \
+          --username ${{ secrets.AZURE_ACR_USERNAME }} \
+          --password ${{ secrets.AZURE_ACR_PASSWORD }} \
+          --output table
 
     # Deploy da API no Azure Container Instances
     - name: Deploy API to Azure Container Instances
