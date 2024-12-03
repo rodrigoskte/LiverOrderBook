@@ -1,4 +1,4 @@
-name: Build and Push Containers to ACR
+name: Build, Push, and Deploy to ACI
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
   BLAZOR_IMAGE_NAME: liveorderbookblazor
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v3
 
     # Login no ACR usando Service Principal
-    - name: Login to Azure Container Registry
+    - name: Login to Azure
       run: |
         az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
         az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
@@ -36,3 +36,32 @@ jobs:
       run: |
         docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} -f DockerfileWASM .
         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }}
+
+    # Deploy no Azure Container Instances
+    - name: Deploy to Azure Container Instances
+      run: |
+        # Deploy da API
+        az container create \
+          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --name liveorderbook-api \
+          --image ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }} \
+          --cpu 1 \
+          --memory 1 \
+          --registry-login-server ${{ env.AZURE_CONTAINER_REGISTRY }} \
+          --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
+          --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
+          --dns-name-label liveorderbook-api \
+          --ports 80
+
+        # Deploy do Blazor
+        az container create \
+          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --name liveorderbook-blazor \
+          --image ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} \
+          --cpu 1 \
+          --memory 1 \
+          --registry-login-server ${{ env.AZURE_CONTAINER_REGISTRY }} \
+          --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
+          --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
+          --dns-name-label liveorderbook-blazor \
+          --ports 80
