@@ -15,60 +15,60 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout do código-fonte
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # Checkout do código-fonte
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # Login no ACR usando Service Principal
-    - name: Login to Azure
-      run: |
-        az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-        az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
+      # Login no ACR usando Service Principal
+      - name: Login to Azure
+        run: |
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
 
-     # Construir e enviar a imagem da API
-     - name: Build and Push API Image
-       run: |
-         docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }} \
-                      -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:latest \
-                      -f DockerfileApi .
-         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }}
-         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:latest
+      # Construir e enviar a imagem da API
+      - name: Build and Push API Image
+        run: |
+          docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }} \
+                       -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:latest \
+                       -f DockerfileApi .
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:latest
 
-     # Construir e enviar a imagem do Blazor
-     - name: Build and Push Blazor Image
-       run: |
-         docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} \
-                      -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:latest \
-                      -f DockerfileWASM .
-         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }}
-         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:latest
+      # Construir e enviar a imagem do Blazor
+      - name: Build and Push Blazor Image
+        run: |
+          docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} \
+                       -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:latest \
+                       -f DockerfileWASM .
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:latest
 
-    # Deploy da API
-    - name: Deploy API to Azure Container Instances
-      run: |
-        az container create \
-          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-          --name liveorderbook-api \
-          --image ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }} \
-          --registry-login-server ${{ env.AZURE_CONTAINER_REGISTRY }} \
-          --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
-          --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
-          --os-type Linux \
-          --cpu 1 \
-          --memory 1 \
-          --ports 80
+      # Deploy da API
+      - name: Deploy API to Azure Container Instances
+        run: |
+          az container create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name liveorderbook-api \
+            --image ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:latest \
+            --registry-login-server ${{ env.AZURE_CONTAINER_REGISTRY }} \
+            --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
+            --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
+            --os-type Linux \
+            --cpu 1 \
+            --memory 1 \
+            --ports 80
 
-    # Deploy do Blazor
-    - name: Deploy Blazor to Azure Container Instances
-      run: |
-        az container create \
-          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-          --name liveorderbook-blazor \
-          --image ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} \
-          --registry-login-server ${{ env.AZURE_CONTAINER_REGISTRY }} \
-          --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
-          --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
-          --os-type Linux \
-          --cpu 1 \
-          --memory 1 \
-          --ports 80
+      # Deploy do Blazor
+      - name: Deploy Blazor to Azure Container Instances
+        run: |
+          az container create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name liveorderbook-blazor \
+            --image ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:latest \
+            --registry-login-server ${{ env.AZURE_CONTAINER_REGISTRY }} \
+            --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
+            --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
+            --os-type Linux \
+            --cpu 1 \
+            --memory 1 \
+            --ports 80
