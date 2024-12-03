@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  AZURE_CONTAINER_REGISTRY: acrliveorderbook.azurecr.io
+  AZURE_CONTAINER_REGISTRY: ${{ secrets.AZURE_ACR_LOGIN_SERVER }}
   API_IMAGE_NAME: liveorderbookapi
   BLAZOR_IMAGE_NAME: liveorderbookblazor
 
@@ -19,13 +19,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Login no Azure Container Registry
+    # Login no ACR usando Service Principal
     - name: Login to Azure Container Registry
-      uses: azure/docker-login@v1
-      with:
-        login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
-        username: ${{ secrets.AZURE_ACR_USERNAME }}
-        password: ${{ secrets.AZURE_ACR_PASSWORD }}
+      run: |
+        az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+        az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
 
     # Construir e enviar a imagem da API
     - name: Build and Push API Image
