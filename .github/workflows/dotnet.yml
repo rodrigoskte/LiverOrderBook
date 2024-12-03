@@ -22,7 +22,8 @@ jobs:
     # Login no ACR usando Admin User
     - name: Login to Azure Container Registry
       run: |
-        az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }} \
+        az acr login \
+          --name aciliveorderbook \
           --username ${{ secrets.AZURE_ACR_USERNAME }} \
           --password ${{ secrets.AZURE_ACR_PASSWORD }}
 
@@ -47,7 +48,7 @@ jobs:
     # Listar repositórios no ACR (opcional, para debug)
     - name: List images in ACR
       run: |
-        az acr repository list --name ${{ env.AZURE_CONTAINER_REGISTRY }} --output table
+        az acr repository list --name aciliveorderbook --output table
 
     # Deploy da API no Azure Container Instances
     - name: Deploy API to Azure Container Instances
