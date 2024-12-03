@@ -102,7 +102,7 @@ Por fim, apresentamos as entidades criadas, a partir do Migrations e Entity, par
 
 A seguir, definimos a função de cada recurso em nossa solução:
 
-- BD SQL: **db-doctorappointment** - o BD em si, contendo as tabelas *LiveOrderBook*.
+- BD SQL: **db-liveorderbook** - o BD em si, contendo as tabelas *LiveOrderBook*.
 
 ## 2.3. Código Desenvolvido
 
