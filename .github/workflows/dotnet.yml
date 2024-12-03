@@ -37,33 +37,32 @@ jobs:
         docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} -f DockerfileWASM .
         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }}
 
-    # Deploy no Azure Container Instances
-    - name: Deploy to Azure Container Instances
-      run: |
-    # Deploy da API
+    # Deploy no Azure Container Instances - API
     - name: Deploy API to Azure Container Instances
       run: |
         az container create \
           --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
           --name liveorderbook-api \
-          --image ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/liveorderbookapi:${{ github.run_number }} \
-          --registry-login-server ${{ secrets.AZURE_ACR_LOGIN_SERVER }} \
+          --image ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.run_number }} \
+          --registry-login-server ${{ env.AZURE_CONTAINER_REGISTRY }} \
           --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
           --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
           --os-type Linux \
           --cpu 1 \
-          --memory 1
+          --memory 1 \
+          --ports 80
 
-    # Deploy do Blazor
+    # Deploy no Azure Container Instances - Blazor
     - name: Deploy Blazor to Azure Container Instances
       run: |
         az container create \
           --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
           --name liveorderbook-blazor \
-          --image ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/liveorderbookblazor:${{ github.run_number }} \
-          --registry-login-server ${{ secrets.AZURE_ACR_LOGIN_SERVER }} \
+          --image ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.BLAZOR_IMAGE_NAME }}:${{ github.run_number }} \
+          --registry-login-server ${{ env.AZURE_CONTAINER_REGISTRY }} \
           --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
           --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
           --os-type Linux \
           --cpu 1 \
-          --memory 1
+          --memory 1 \
+          --ports 80
