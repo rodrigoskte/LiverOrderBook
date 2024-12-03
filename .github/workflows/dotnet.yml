@@ -19,6 +19,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    # Login no Azure usando Service Principal
+    - name: Login to Azure
+      run: |
+        az login --service-principal \
+          --username ${{ secrets.AZURE_CLIENT_ID }} \
+          --password ${{ secrets.AZURE_CLIENT_SECRET }} \
+          --tenant ${{ secrets.AZURE_TENANT_ID }}
+
     # Login no ACR usando Admin User
     - name: Login to Azure Container Registry
       run: |
